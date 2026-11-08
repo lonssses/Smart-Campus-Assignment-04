@@ -1,8 +1,13 @@
 // ---------------------------------------------------------------------------
-// Smart Campus Room Availability Checker — core logic (V1)
+// Smart Campus Room Availability Checker — core logic (V2)
 //
 // All logic is pure and easy to inspect. No state, no side effects, no I/O.
 // Fictional example data is defined in src/data/roomData.ts.
+//
+// V2 additions: Room gains id/capacity/equipment and a bookings array;
+// filterRooms implements F1 (capacity) and F2 (equipment). The original
+// validateInputs / overlaps / checkAvailability functions are unchanged in
+// behavior — checkAvailability now takes bookings from the Room object.
 // ---------------------------------------------------------------------------
 
 export interface Booking {
@@ -12,9 +17,13 @@ export interface Booking {
 }
 
 export interface Room {
+  id: string;
   name: string;
   building: string;
+  capacity: number;
+  equipment: string[];
   blocked: boolean;
+  bookings: Booking[];
 }
 
 export type ValidationResult =
@@ -91,10 +100,27 @@ function overlaps(a: Booking, b: Booking): boolean {
   return a.start < b.end && b.start < a.end;
 }
 
-// AC3 + AC4 + AC5: check a validated request against the room and bookings.
+// F1: capacity >= requested attendees.
+// F2: room has ALL required equipment items.
+// F3: blocked rooms are excluded from filtered results (and separately
+//     enforced in checkAvailability so a blocked room is never "available").
+// Returns a new array; does not mutate the input.
+export function filterRooms(
+  rooms: Room[],
+  attendees: number,
+  requiredEquipment: string[]
+): Room[] {
+  return rooms.filter((room) => {
+    if (room.capacity < attendees) return false;
+    if (requiredEquipment.length === 0) return true;
+    return requiredEquipment.every((item) => room.equipment.includes(item));
+  });
+}
+
+// AC3 + AC4 + AC5: check a validated request against a single room's bookings.
+// The room's bookings are read only — nothing is added, removed, or mutated.
 export function checkAvailability(
   room: Room,
-  existing: Booking[],
   start: number,
   end: number
 ): AvailabilityResult {
@@ -102,7 +128,7 @@ export function checkAvailability(
     return { available: false, reason: 'This room is currently blocked and cannot be booked.' };
   }
   const request: Booking = { start, end };
-  const conflict = existing.find((b) => overlaps(b, request));
+  const conflict = room.bookings.find((b) => overlaps(b, request));
   if (conflict) {
     return {
       available: false,
