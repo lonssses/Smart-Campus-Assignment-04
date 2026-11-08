@@ -1,13 +1,9 @@
 // ---------------------------------------------------------------------------
-// Smart Campus Room Availability Checker — core logic (V2)
+// Smart Campus Room Availability Checker — domain types + booking rules
 //
-// All logic is pure and easy to inspect. No state, no side effects, no I/O.
-// Fictional example data is defined in src/data/roomData.ts.
-//
-// V2 additions: Room gains id/capacity/equipment and a bookings array;
-// filterRooms implements F1 (capacity) and F2 (equipment). The original
-// validateInputs / overlaps / checkAvailability functions are unchanged in
-// behavior — checkAvailability now takes bookings from the Room object.
+// Pure functions only. No state, no side effects, no I/O.
+// Fictional data lives in src/data/roomData.ts.
+// Room filtering logic lives in src/lib/roomFilter.ts.
 // ---------------------------------------------------------------------------
 
 export interface Booking {
@@ -98,23 +94,6 @@ export function validateInputs(
 // (e.g. 600–660 and 660–720) are allowed, so we use strict inequalities.
 function overlaps(a: Booking, b: Booking): boolean {
   return a.start < b.end && b.start < a.end;
-}
-
-// F1: capacity >= requested attendees.
-// F2: room has ALL required equipment items.
-// F3: blocked rooms are excluded from filtered results (and separately
-//     enforced in checkAvailability so a blocked room is never "available").
-// Returns a new array; does not mutate the input.
-export function filterRooms(
-  rooms: Room[],
-  attendees: number,
-  requiredEquipment: string[]
-): Room[] {
-  return rooms.filter((room) => {
-    if (room.capacity < attendees) return false;
-    if (requiredEquipment.length === 0) return true;
-    return requiredEquipment.every((item) => room.equipment.includes(item));
-  });
 }
 
 // AC3 + AC4 + AC5: check a validated request against a single room's bookings.
