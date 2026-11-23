@@ -56,6 +56,35 @@ describe('F5 — changing room clears result', () => {
 });
 
 // ---------------------------------------------------------------------------
+// F3: a blocked room is always unavailable in the UI
+// ---------------------------------------------------------------------------
+describe('F3 — blocked room D005 is always unavailable', () => {
+  it('shows Unavailable with a blocked-room reason when D005 is checked', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // D005 has capacity 12, so with default attendees=1 it appears in the list
+    await user.click(screen.getByText('Room D005'));
+
+    // Enter a valid time window (660–720 is after NOW=540 and within 120 min)
+    const startInput = screen.getByLabelText(/Start time/i);
+    const endInput = screen.getByLabelText(/End time/i);
+    await user.clear(startInput);
+    await user.type(startInput, '660');
+    await user.clear(endInput);
+    await user.type(endInput, '720');
+
+    await user.click(screen.getByRole('button', { name: 'Check Availability' }));
+
+    // F3: a blocked room can never be reported as available
+    expect(screen.getByText('Unavailable')).toBeInTheDocument();
+    expect(
+      screen.getByText(/This room is currently blocked/i)
+    ).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Integration test: full availability check flow
 // ---------------------------------------------------------------------------
 describe('Integration — check availability end to end', () => {
