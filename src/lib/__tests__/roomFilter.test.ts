@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { filterRooms } from '@/lib/roomFilter';
-import { checkAvailability, type Room } from '@/lib/availability';
+import { checkAvailability } from '@/lib/availability';
 import { ROOMS } from '@/data/roomData';
 
 // ---------------------------------------------------------------------------

@@ -7,7 +7,7 @@ import {
   MAX_DURATION,
   type Room,
 } from '@/lib/availability';
-import { NOW, ROOMS } from '@/data/roomData';
+import { ROOMS } from '@/data/roomData';
 
 const NOW_VAL = 540; // 09:00 — fixed per assignment
 

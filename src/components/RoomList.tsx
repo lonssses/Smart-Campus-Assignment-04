@@ -1,4 +1,4 @@
-import { DoorClosed, Users, Ban } from 'lucide-react';
+import { Users, Ban } from 'lucide-react';
 import type { Room } from '@/lib/availability';
 
 export function RoomListItem({
